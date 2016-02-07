@@ -2,7 +2,7 @@
 
 Userscript which can be used to reverse the testing direction of Memrise tests. 
 
-<img alt="demu" src="images/demo.gif" width="70%" />
+<img alt="demo" src="images/demo.gif" width="70%" />
 
 ### Installation
 
