@@ -1,6 +1,8 @@
 # Memrise Reverse Translations
 
-Userscript which can be used to reverse the testing direction.
+Userscript which can be used to reverse the testing direction of Memrise tests. 
+
+<img alt="demu" src="images/demo.gif" width="70%" />
 
 ### Installation
 
