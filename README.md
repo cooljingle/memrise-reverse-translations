@@ -12,3 +12,6 @@ The easiest method is through an extension/add-on on chrome/firefox:
 - Firefox: install the [Greasemonkey](https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/) add-on
 
 Then add the script using the following link: https://github.com/cooljingle/memrise-reverse-translations/raw/master/Memrise_Reverse_Translations.user.js
+
+### Usage
+Click the relevant link on the side to toggle reverse translations for the current course you are in. The changes are applied for that course's future tests.
