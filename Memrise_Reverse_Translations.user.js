@@ -4,7 +4,7 @@
 // @description    Reverse testing direction when using Memrise
 // @match          https://www.memrise.com/course/*/garden/*
 // @match          https://www.memrise.com/garden/review/*
-// @version        0.0.9
+// @version        0.0.10
 // @updateURL      https://github.com/cooljingle/memrise-reverse-translations/raw/master/Memrise_Reverse_Translations.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-reverse-translations/raw/master/Memrise_Reverse_Translations.user.js
 // @grant          none
@@ -65,7 +65,12 @@ $(document).ready(function() {
                 var result = cached_function.apply(this, arguments);
                 if(isReversed && result.template === "typing") {
                     [result.learnable.item, result.learnable.definition] = [result.learnable.definition, result.learnable.item];
-                    [result.correct, result.prompt] = [result.prompt, result.correct];
+                    ["correct", "prompt"].forEach(x => {
+                        if(result[x] === result.learnable.item.value)
+                            result[x] = result.learnable.definition.value;
+                        else if(result[x] === result.learnable.definition.value)
+                            result[x] = result.learnable.item.value;
+                    });
                     result.accepted = [result.correct];
                 }
                 return result;
