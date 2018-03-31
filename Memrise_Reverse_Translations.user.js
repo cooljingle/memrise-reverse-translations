@@ -4,7 +4,7 @@
 // @description    Reverse testing direction when using Memrise
 // @match          https://www.memrise.com/course/*/garden/*
 // @match          https://www.memrise.com/garden/review/*
-// @version        0.0.10
+// @version        0.0.11
 // @updateURL      https://github.com/cooljingle/memrise-reverse-translations/raw/master/Memrise_Reverse_Translations.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-reverse-translations/raw/master/Memrise_Reverse_Translations.user.js
 // @grant          none
@@ -15,8 +15,8 @@ $(document).ready(function() {
         reversedCourses = JSON.parse(localStorage.getItem(localStorageIdentifier)) || [];
     $('#left-area').append("<a id='reverse-translations'></a>");
 
-    MEMRISE.garden.boxes.load = (function() {
-        var cached_function = MEMRISE.garden.boxes.load;
+    MEMRISE.garden.session_start = (function() {
+        var cached_function = MEMRISE.garden.session_start;
         return function() {
             enableReverseTranslations();
             return cached_function.apply(this, arguments);
@@ -28,20 +28,6 @@ $(document).ready(function() {
             element = $('#reverse-translations'),
             isReversed;
 
-        MEMRISE.garden.box_mapping.multiple_choice = MEMRISE.garden.box_mapping.reversed_multiple_choice = (function(){
-            var mc = MEMRISE.garden.box_types.MultipleChoiceBox;
-            var rmc = MEMRISE.garden.box_types.ReversedMultipleChoiceBox;
-            return function() {
-                if(isReversed){
-                    arguments[0].template = "reversed_multiple_choice";
-                    return new rmc(...arguments);
-                } else {
-                    arguments[0].template = "multiple_choice";
-                    return new mc(...arguments);
-                }
-            };
-        }());
-
         element.click(function() {
             isReversed = !isReversed;
             setReversedState(true);
@@ -50,12 +36,15 @@ $(document).ready(function() {
         MEMRISE.garden.session.box_factory.make = (function () {
             var cached_function = MEMRISE.garden.session.box_factory.make;
             return function () {
-                courseId = MEMRISE.garden.session.course_id || (arguments[0].learnable_id && MEMRISE.garden.session_data.things_to_courses[MEMRISE.garden.learnables[arguments[0].learnable_id].thing_id]);
+                courseId = MEMRISE.garden.session.course_id || (arguments[0].learnable_id && MEMRISE.garden.session_data.learnables_to_courses[arguments[0].learnable_id]);
                 if(courseId){
                     isReversed = reversedCourses.indexOf(courseId) > -1;
                     setReversedState();
                 }
-                return cached_function.apply(this, arguments);
+                var result = cached_function.apply(this, arguments);
+                if(result.template.endsWith('multiple_choice'))
+                    result.template = `${isReversed ? 'reversed_' : ''}multiple_choice`;
+                return result;
             };
         }());
 
@@ -65,24 +54,16 @@ $(document).ready(function() {
                 var result = cached_function.apply(this, arguments);
                 if(isReversed && result.template === "typing") {
                     [result.learnable.item, result.learnable.definition] = [result.learnable.definition, result.learnable.item];
-                    ["correct", "prompt"].forEach(x => {
-                        if(result[x] === result.learnable.item.value)
-                            result[x] = result.learnable.definition.value;
-                        else if(result[x] === result.learnable.definition.value)
-                            result[x] = result.learnable.item.value;
-                    });
-                    result.accepted = [result.correct];
-                }
-                return result;
-            };
-        }());
+                    if(result.testData.correct[0] === result.learnable.item.value)
+                        result.testData.correct[0] = result.learnable.definition.value;
+                    else if(result.testData.correct[0] === result.learnable.definition.value)
+                        result.testData.correct[0] = result.learnable.item.value;
 
-        MEMRISE.garden.boxes.activate_box = (function () {
-            var cached_function = MEMRISE.garden.boxes.activate_box;
-            return function () {
-                var result = cached_function.apply(this, arguments);
-                if(isReversed && this.current().template === "typing")
-                    [this.current().learnable.item, this.current().learnable.definition] = [this.current().learnable.definition, this.current().learnable.item];
+                    if(result.prompt === result.learnable.item.value)
+                        result.prompt  = result.learnable.definition.value;
+                    else if(result.prompt  === result.learnable.definition.value)
+                        result.prompt = result.learnable.item.value;
+                }
                 return result;
             };
         }());
