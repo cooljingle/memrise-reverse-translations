@@ -4,7 +4,7 @@
 // @description    Reverse testing direction when using Memrise
 // @match          https://www.memrise.com/course/*/garden/*
 // @match          https://www.memrise.com/garden/review/*
-// @version        0.0.11
+// @version        0.0.12
 // @updateURL      https://github.com/cooljingle/memrise-reverse-translations/raw/master/Memrise_Reverse_Translations.user.js
 // @downloadURL    https://github.com/cooljingle/memrise-reverse-translations/raw/master/Memrise_Reverse_Translations.user.js
 // @grant          none
@@ -15,13 +15,9 @@ $(document).ready(function() {
         reversedCourses = JSON.parse(localStorage.getItem(localStorageIdentifier)) || [];
     $('#left-area').append("<a id='reverse-translations'></a>");
 
-    MEMRISE.garden.session_start = (function() {
-        var cached_function = MEMRISE.garden.session_start;
-        return function() {
-            enableReverseTranslations();
-            return cached_function.apply(this, arguments);
-        };
-    }());
+    MEMRISE.garden._events.start.push(() => {
+        enableReverseTranslations();
+    });
 
     function enableReverseTranslations() {
         var courseId,
